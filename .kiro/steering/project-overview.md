@@ -59,12 +59,50 @@ The backend stack (for reference):
 - Staging on Render (Frankfurt) + self-hosted ThinkPad via Tailscale
 - JWT auth (simplejwt), Argon2id passwords, M-Pesa/Paystack payments
 
-## Staging server
+## Staging server (self-hosted, Tailscale)
+
+Both the engine and consumer backend run on a self-hosted **Lenovo ThinkPad laptop** in Nairobi, reachable only via Tailscale VPN.
 
 ```
-Host:     100.96.139.83 (Tailscale IP)
+Host:     100.96.139.83 (Tailscale IP — not reachable without Tailscale running)
 User:     mayday
-SSH:      ssh -o StrictHostKeyChecking=no mayday@100.96.139.83
+SSH:      ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 mayday@100.96.139.83
 Engine:   /home/mayday/ff-engine
 Consumer: /home/mayday/ff-consumer
+Venvs:    /home/mayday/ff-engine/.venv, /home/mayday/ff-consumer/.venv
 ```
+
+**Prerequisites to access the server:**
+1. Tailscale must be installed and running on the local machine
+2. The SSH key is at `~/.ssh/id_ed25519` on this machine (jarvis)
+3. If `ssh` fails with "agent refused operation", run: `eval $(ssh-agent) && ssh-add ~/.ssh/id_ed25519`
+
+**Services on the server:**
+```
+ff-engine.service      — gunicorn for the engine (port 8000)
+ff-consumer.service    — gunicorn for the consumer backend (port 8001)
+postgresql              — both databases (flavorfind_engine_db, flavorfind_consumer_db)
+redis-server            — cache + Celery broker
+nginx                   — reverse proxy (Cloudflare in front)
+```
+
+**Server health check:**
+```bash
+ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 mayday@100.96.139.83 "sudo /usr/local/bin/server-health-check.sh && tail -20 /var/log/server-health.log"
+```
+Checks: CPU temp, disk usage, memory, battery level/status/charging, service statuses, SMART disk health. Logs to `/var/log/server-health.log` on the server.
+
+**Off-server backups (on this machine — jarvis):**
+```
+Location:  /home/jarvis/Documents/backups/flavorfind/
+Structure:
+  engine/db/        — pg_dump of flavorfind_engine_db (nightly, gzipped)
+  engine/config/    — systemd, nginx, prod settings, requirements
+  consumer/db/      — pg_dump of flavorfind_consumer_db (nightly, gzipped)
+  consumer/config/  — systemd, prod settings, requirements
+  logs/             — backup logs + server state snapshots
+  scripts/
+    backup.sh       — runs nightly via cron at 2 AM EAT (11 PM UTC)
+    restore.sh      — restore a DB from backup: ./restore.sh engine|consumer <timestamp>
+```
+Retention: 35 days, auto-purged. First backup verified 2026-11-01.
