@@ -17,7 +17,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { fetchDish, type DishDetail } from "@/lib/api";
+import { fetchDish, saveRecipe, unsaveRecipe, getSaved, type DishDetail } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -156,12 +157,17 @@ function Skeleton() {
 export default function DishPage() {
   const params = useParams<{ slug: string }>();
   const slug = params?.slug ?? "";
+  const { isAuthenticated } = useAuth();
 
   const [dish, setDish] = useState<DishDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cookMode, setCookMode] = useState(false);
-  const [savedMsg, setSavedMsg] = useState<string | null>(null);
+
+  // Save state
+  const [savedId, setSavedId] = useState<string | null>(null); // id from /v1/saved/ if saved
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -171,6 +177,38 @@ export default function DishPage() {
       .catch((e) => setError(e?.message ?? "Failed to load dish"))
       .finally(() => setLoading(false));
   }, [slug]);
+
+  // Check if already saved (only when authenticated)
+  useEffect(() => {
+    if (!isAuthenticated || !slug) return;
+    getSaved()
+      .then((items) => {
+        const existing = items.find((s) => s.dish_slug === slug);
+        if (existing) setSavedId(existing.id);
+      })
+      .catch(() => {});
+  }, [isAuthenticated, slug]);
+
+  async function handleSave() {
+    if (!isAuthenticated) { setSaveMsg("sign-in"); return; }
+    setSaving(true);
+    setSaveMsg(null);
+    try {
+      if (savedId) {
+        await unsaveRecipe(savedId);
+        setSavedId(null);
+        setSaveMsg("removed");
+      } else {
+        const saved = await saveRecipe(slug);
+        setSavedId(saved.id);
+        setSaveMsg("saved");
+      }
+    } catch {
+      setSaveMsg("error");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   if (loading) return <Skeleton />;
 
@@ -266,14 +304,24 @@ export default function DishPage() {
                 </button>
               )}
               <button
-                className="btn btn-out dd-save-btn"
-                onClick={() => setSavedMsg("Sign in to save recipes.")}
-                aria-label="Save recipe"
-              >
-                ♡ Save recipe
-              </button>
-            </div>
-            {savedMsg && <p className="dd-save-msg">{savedMsg} <Link href="/auth/sign-in">Sign in →</Link></p>}
+                  className={cn("btn btn-out dd-save-btn", savedId && "dd-save-btn-saved")}
+                  onClick={handleSave}
+                  disabled={saving}
+                  aria-label={savedId ? "Remove from saved" : "Save recipe"}
+                >
+                  {saving ? "…" : savedId ? "♥ Saved" : "♡ Save recipe"}
+                </button>
+              </div>
+              {saveMsg === "sign-in" && (
+                <p className="dd-save-msg">
+                  <Link href="/auth/sign-in">Sign in</Link> to save recipes.
+                </p>
+              )}
+              {saveMsg === "error" && (
+                <p className="dd-save-msg" style={{ color: "var(--chili)" }}>
+                  Couldn't save. Try again.
+                </p>
+              )}
           </div>
         </div>
       </div>

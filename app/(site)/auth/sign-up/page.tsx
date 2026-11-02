@@ -29,7 +29,7 @@ export default function SignUpPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated) router.replace("/cook");
+    if (!isLoading && isAuthenticated) router.replace("/");
   }, [isLoading, isAuthenticated, router]);
 
   function validate(): boolean {
@@ -54,8 +54,7 @@ export default function SignUpPage() {
         { skipAuth: true },
       );
       login(res.user, res.access, res.refresh);
-      // Backend sends verification email automatically — user can use the app now
-      router.push("/cook");
+      router.push("/");
     } catch (err) {
       if (err instanceof ApiError) {
         const detail = err.detail as Record<string, string[]> | undefined;

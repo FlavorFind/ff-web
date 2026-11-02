@@ -28,10 +28,12 @@ import {
   autocomplete,
   resolveIngredients,
   searchDishes,
+  getPantry,
   type IngredientResult,
   type ResolveToken,
   type SearchDish,
 } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import { useLang } from "@/lib/lang-context";
 import { QUICK_ADD } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -177,6 +179,7 @@ function EmptyState({ mode, onSwitch }: { mode: "strict" | "explore"; onSwitch: 
 
 export default function CookPage() {
   const { lang, t } = useLang();
+  const { isAuthenticated } = useAuth();
 
   // Ingredient chips
   const [chips, setChips] = useState<Chip[]>([]);
@@ -203,6 +206,26 @@ export default function CookPage() {
 
   // Disambiguation / notice
   const [notice, setNotice] = useState<Notice | null>(null);
+
+  // ── Load pantry for authenticated users ──────────────────────────────────────
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    getPantry()
+      .then((items) => {
+        if (items.length === 0) return;
+        const pantryChips: Chip[] = items.map((item) => ({
+          id: uid(),
+          display: item.display_name,
+          token: item.display_name.toLowerCase(),
+          status: "ok" as const,
+        }));
+        setChips((prev) => {
+          const existing = new Set(prev.map((c) => c.token));
+          return [...prev, ...pantryChips.filter((c) => !existing.has(c.token))];
+        });
+      })
+      .catch(() => {}); // silently fail — user can still add manually
+  }, [isAuthenticated]);
 
   // ── Autocomplete ─────────────────────────────────────────────────────────────
 

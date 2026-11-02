@@ -148,6 +148,8 @@ export const api = {
     request<T>(path, { ...opts, method: "POST", body }),
   patch: <T>(path: string, body?: unknown, opts?: Omit<Opts, "method" | "body">) =>
     request<T>(path, { ...opts, method: "PATCH", body }),
+  put: <T>(path: string, body?: unknown, opts?: Omit<Opts, "method" | "body">) =>
+    request<T>(path, { ...opts, method: "PUT", body }),
   delete: <T = void>(path: string, opts?: Omit<Opts, "method" | "body">) =>
     request<T>(path, { ...opts, method: "DELETE" }),
 };
@@ -414,4 +416,252 @@ export function resendVerification(email: string): Promise<{ detail: string }> {
 /** GET /v1/me/ */
 export function getMe(): Promise<User> {
   return api.get<User>("/v1/me/");
+}
+
+// ── Pantry ─────────────────────────────────────────────────────────────────────
+
+export interface PantryItem {
+  id: string;
+  ingredient_id: string;
+  ingredient_slug: string;
+  display_name: string;
+  added_at: string;
+}
+
+export function getPantry(): Promise<PantryItem[]> {
+  return api.get<PantryItem[]>("/v1/pantry/");
+}
+
+export function addPantryItem(ingredient_slug: string, display_name: string): Promise<PantryItem> {
+  return api.post<PantryItem>("/v1/pantry/", { ingredient_slug, display_name });
+}
+
+export function removePantryItem(id: string): Promise<void> {
+  return api.delete<void>(`/v1/pantry/${id}/`);
+}
+
+// ── Saved recipes ──────────────────────────────────────────────────────────────
+
+export interface SavedRecipe {
+  id: string;
+  dish_id: string;
+  dish_slug: string;
+  note: string;
+  saved_at: string;
+}
+
+export function getSaved(): Promise<SavedRecipe[]> {
+  return api.get<SavedRecipe[]>("/v1/saved/");
+}
+
+export function saveRecipe(dish_slug: string, note = ""): Promise<SavedRecipe> {
+  return api.post<SavedRecipe>("/v1/saved/", { dish_slug, note });
+}
+
+export function unsaveRecipe(id: string): Promise<void> {
+  return api.delete<void>(`/v1/saved/${id}/`);
+}
+
+// ── User profile ───────────────────────────────────────────────────────────────
+
+export interface UserProfile {
+  household_size: number | null;
+  region: string | null;
+  budget_kes: number | null;
+}
+
+export function getProfile(): Promise<UserProfile> {
+  return api.get<UserProfile>("/v1/me/profile/");
+}
+
+export function updateProfile(data: Partial<UserProfile>): Promise<UserProfile> {
+  return api.patch<UserProfile>("/v1/me/profile/", data);
+}
+
+// ── Subscription ───────────────────────────────────────────────────────────────
+
+export interface Subscription {
+  plan_code: "free" | "plus";
+  status: string;
+  trial_ends_at: string | null;
+  renews_at: string | null;
+}
+
+export function getSubscription(): Promise<Subscription> {
+  return api.get<Subscription>("/v1/subscription/");
+}
+
+// ── Diet & allergens ───────────────────────────────────────────────────────────
+
+export interface DietSettings {
+  diet_tags: string[];
+  allergen_exclusions: string[];
+}
+
+export function getDiet(): Promise<DietSettings> {
+  return api.get<DietSettings>("/v1/me/diet/");
+}
+
+export function updateDiet(data: Partial<DietSettings>): Promise<DietSettings> {
+  return api.patch<DietSettings>("/v1/me/diet/", data);
+}
+
+// ── Devices ────────────────────────────────────────────────────────────────────
+
+export interface Device {
+  id: string;
+  device_name: string;
+  platform: string;
+  last_seen: string;
+}
+
+export function getDevices(): Promise<Device[]> {
+  return api.get<Device[]>("/v1/me/devices/");
+}
+
+// ── Account management ─────────────────────────────────────────────────────────
+
+export function exportData(): Promise<Record<string, unknown>> {
+  return api.get<Record<string, unknown>>("/v1/me/export/");
+}
+
+export function deleteAccount(): Promise<void> {
+  return api.delete<void>("/v1/me/delete/");
+}
+
+// ── Cook history ───────────────────────────────────────────────────────────────
+
+export interface CookEntry {
+  id: string;
+  dish_slug: string;
+  cooked_at: string;
+}
+
+export function getCookHistory(): Promise<CookEntry[]> {
+  return api.get<CookEntry[]>("/v1/cooked/");
+}
+
+export function logCooked(dish_slug: string): Promise<CookEntry> {
+  return api.post<CookEntry>("/v1/cooked/", { dish_slug });
+}
+
+// ── Collections ────────────────────────────────────────────────────────────────
+
+export interface Collection {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
+export function getCollections(): Promise<Collection[]> {
+  return api.get<Collection[]>("/v1/saved/collections/");
+}
+
+export function createCollection(name: string): Promise<Collection> {
+  return api.post<Collection>("/v1/saved/collections/", { name });
+}
+
+// ── Meal planner ───────────────────────────────────────────────────────────────
+
+export interface MealSlot {
+  day: string;          // "monday" | "tuesday" | ...
+  meal_type: string;    // "breakfast" | "lunch" | "dinner" | "snack"
+  dish_slug: string | null;
+  note: string;
+}
+
+export interface WeekPlan {
+  week: string;         // YYYY-Www format e.g. "2026-W44"
+  slots: MealSlot[];
+}
+
+export function getMealPlan(week: string): Promise<WeekPlan> {
+  return api.get<WeekPlan>(`/v1/plans/${week}/`);
+}
+
+export function updateMealPlan(week: string, data: Partial<WeekPlan>): Promise<WeekPlan> {
+  return api.put<WeekPlan>(`/v1/plans/${week}/`, data);
+}
+
+// ── Budget mode ────────────────────────────────────────────────────────────────
+
+export interface BudgetResult {
+  dishes: Array<{
+    dish_slug: string;
+    name_en: string;
+    name_sw: string;
+    cost_estimate_kes: number;
+    tier: string;
+  }>;
+  budget_kes: number;
+}
+
+export function getBudgetSuggestions(budget_kes: number, ingredients?: string[]): Promise<BudgetResult> {
+  return api.post<BudgetResult>("/v1/budget/suggest/", { budget_kes, ingredients });
+}
+
+// ── Community / submissions ────────────────────────────────────────────────────
+
+export interface Submission {
+  id: string;
+  dish_name_en: string;
+  dish_name_sw: string;
+  status: "pending" | "reviewed" | "approved" | "rejected";
+  submitted_at: string;
+}
+
+export function getSubmissions(): Promise<Submission[]> {
+  return api.get<Submission[]>("/v1/submissions/");
+}
+
+export function createSubmission(data: {
+  dish_name_en: string;
+  dish_name_sw?: string;
+  description: string;
+  ingredients: string;
+  steps: string;
+  region_slug?: string;
+}): Promise<Submission> {
+  return api.post<Submission>("/v1/submissions/", data);
+}
+
+// ── Billing plans ──────────────────────────────────────────────────────────────
+
+export interface BillingPlan {
+  code: string;
+  name: string;
+  price_kes: number;
+  features: string[];
+}
+
+export function getBillingPlans(): Promise<BillingPlan[]> {
+  return api.get<BillingPlan[]>("/v1/plans/");
+}
+
+export function subscribe(phone: string): Promise<{ checkout_request_id: string; message: string }> {
+  return api.post("/v1/subscribe/", { phone });
+}
+
+// ── Notifications ──────────────────────────────────────────────────────────────
+
+export interface Notification {
+  id: string;
+  kind: string;
+  message: string;
+  read: boolean;
+  created_at: string;
+}
+
+export function getNotifications(): Promise<Notification[]> {
+  return api.get<Notification[]>("/v1/notifications/");
+}
+
+export function markNotificationRead(id: string): Promise<void> {
+  return api.post<void>(`/v1/notifications/${id}/read/`);
+}
+
+// ── Health check ───────────────────────────────────────────────────────────────
+
+export function healthCheck(): Promise<{ status: string; engine_status: string }> {
+  return api.get("/v1/health/");
 }

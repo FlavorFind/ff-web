@@ -98,7 +98,6 @@ export function Story() {
   const dims   = useRef({ size: 1, top: 0 });
 
   // ── Data refs — readable by the scroll callback without stale closures ──────
-  // tokensRef drives the animation math; tokensForRender drives the JSX.
   const SEED_TOKENS: StoryToken[] = SEED_INGREDIENTS.map((en, i) => ({
     en, sw: "",
     x: SCATTER[i][0], y: SCATTER[i][1],
@@ -106,87 +105,76 @@ export function Story() {
     color: TOKEN_COLORS[i],
   }));
 
+  // Pre-seed dishesRef with MAX_DISHES empty slots so scroll math always
+  // divides into 6 equal sections from the start, even before the fetch lands.
+  const SEED_DISHES: DishSlot[] = Array.from({ length: MAX_DISHES }, (_, i) => ({
+    dish: {
+      dish_id: `seed-${i}`, slug: "", name_en: "—", name_sw: "",
+      tier: "exact" as const, score: 0,
+      matched: [], missing: [], assumed_staples: [], quality_level: "",
+    },
+    pairing: undefined,
+  }));
+
   const tokensRef  = useRef<StoryToken[]>(SEED_TOKENS);
-  const dishesRef  = useRef<DishSlot[]>([]);
+  const dishesRef  = useRef<DishSlot[]>(SEED_DISHES);
 
   // React state — only what drives JSX re-renders
   const [tokensForRender, setTokensForRender] = useState<StoryToken[]>(SEED_TOKENS);
   const [captionsForRender, setCaptionsForRender] = useState<[string, string][]>(SEED_CAPTIONS);
   const [view, setView] = useState({ k: 0, d: 0, dishIdx: 0 });
+  const [currentDish, setCurrentDish] = useState<DishSlot | null>(null);
 
   // ── Fetch real data on mount ─────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
 
-    // Use tomato + onion as the base — well-covered in the engine
     const ingredients = ["tomato", "onion", "coriander", "chilli"];
 
     searchDishes(ingredients, "explore", 12).then((res) => {
       if (cancelled) return;
 
       const all: SearchDish[] = [
-        ...(res.results.exact ?? []),
+        ...(res.results.exact    ?? []),
         ...(res.results.can_make ?? []),
-        ...(res.results.almost ?? []),
+        ...(res.results.almost   ?? []),
       ];
       if (all.length === 0) return;
 
-      // Pick up to MAX_DISHES diverse dishes
       const picked = all.slice(0, MAX_DISHES);
+      const first  = picked[0];
 
-      // Build token set from first dish's matched ingredients
-      const first = picked[0];
       const matchedNames = first.matched.map((m) => m.name_en);
       const missingNames = first.missing.map((m) => m.name_en);
-
-      // The "pantry" tokens = matched + up to (5 - matched) missing/extra
       const pantry = [...matchedNames.slice(0, 4), missingNames[0] ?? "Chicken"].slice(0, 5);
+
       const newTokens: StoryToken[] = pantry.map((name, i) => ({
-        en: name,
-        sw: "",
-        x: SCATTER[i][0],
-        y: SCATTER[i][1],
+        en: name, sw: "",
+        x: SCATTER[i][0], y: SCATTER[i][1],
         deg: (i < 4 ? ORBIT_DEGS[i] : null) as number | null,
         color: tokenColor(name, i),
       }));
 
-      // Build dish slots with pairing name from inline pairings
-      const slots: DishSlot[] = picked.map((d) => {
-        const pairings = (d as SearchDish & { pairings?: Array<{ paired_dish_name: string | null; paired_label: string }> }).pairings ?? [];
-        const top = pairings[0];
-        return {
-          dish: d,
-          pairing: top ? (top.paired_dish_name ?? top.paired_label) : undefined,
-        };
-      });
+      const slots: DishSlot[] = picked.map((d) => ({
+        dish: d,
+        pairing: undefined, // pairings not in search response — dish detail has them
+      }));
 
-      // Build captions for each phase
       const ejected = pantry[4] ?? "one ingredient";
       const newCaptions: [string, string][] = [
-        [
-          "Open the pantry.",
-          `${pantry.slice(0, 4).join(", ")}. And ${ejected} that doesn't make the cut.`,
-        ],
-        [
-          "Strict means strict.",
-          `The engine checks every required ingredient. ${ejected} isn't needed, so it's out.`,
-        ],
-        [
-          "It comes together.",
-          `${first.name_en} — all matched, nothing guessed.`,
-        ],
-        [
-          "Scroll to see every dish.",
-          `${picked.length} dishes your pantry can make. Keep scrolling.`,
-        ],
+        ["Open the pantry.",       `${pantry.slice(0, 4).join(", ")}. And ${ejected} that doesn't make the cut.`],
+        ["Strict means strict.",   `The engine checks every required ingredient. ${ejected} isn't needed, so it's out.`],
+        ["It comes together.",     `${first.name_en} — all matched, nothing guessed.`],
+        ["Scroll to see every dish.", `${picked.length} dishes your pantry can make. Keep scrolling.`],
       ];
 
-      // Write into refs first — scroll callback reads these immediately
-      tokensRef.current = newTokens;
-      dishesRef.current = slots;
-      // Then update render state so JSX re-renders with the new token labels
+      // Populate refs FIRST so the next scroll frame sees the real data
+      tokensRef.current  = newTokens;
+      dishesRef.current  = slots;
+      // Then flush to render state
       setTokensForRender(newTokens);
       setCaptionsForRender(newCaptions);
+      setCurrentDish(slots[0] ?? null);
     }).catch(() => { /* silently keep seed data */ });
 
     return () => { cancelled = true; };
@@ -287,7 +275,13 @@ export function Story() {
       ? Math.round(sliceP * 4)
       : Math.round(sg(p, 0.9, 1) * 4);
 
+    const slot = dishesRef.current[dishIdx] ?? null;
     setView((v) => (v.k === k && v.d === d && v.dishIdx === dishIdx ? v : { k, d, dishIdx }));
+    setCurrentDish((prev) => {
+      if (!slot) return prev;
+      if (prev?.dish.dish_id === slot.dish.dish_id) return prev;
+      return slot;
+    });
   };
 
   useScrollFrame(update, measure);
@@ -306,11 +300,10 @@ export function Story() {
     });
   };
 
-  // Current dish for bowl labels — read from ref so it matches animation state
-  const currentSlot = dishesRef.current[view.dishIdx];
-  const dishName    = currentSlot?.dish.name_en ?? "—";
-  const dishTier    = currentSlot?.dish.tier ?? "exact";
-  const pairingName = currentSlot?.pairing;
+  // Current dish for bowl labels — driven by state so it updates on fetch + scroll
+  const dishName    = currentDish?.dish.name_en ?? "—";
+  const dishTier    = currentDish?.dish.tier    ?? "exact";
+  const pairingName = currentDish?.pairing;
 
   return (
     <section ref={sec} className="story" id="story" aria-label="How a dish comes together">

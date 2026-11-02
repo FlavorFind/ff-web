@@ -64,58 +64,55 @@ export function SiteHeader() {
         {/* Theme */}
         <ThemeToggle />
 
-        {/* Auth — don't render until session restore is done to avoid flicker */}
-        {!isLoading && (
-          isAuthenticated && user ? (
-            /* ── Logged-in state ── */
-            <div className="hdr-user" ref={menuRef}>
-              <button
-                className="hdr-avatar"
-                onClick={() => setMenuOpen((o) => !o)}
-                aria-label="Account menu"
-                aria-expanded={menuOpen}
-                aria-haspopup="true"
-              >
-                <span className="hdr-avatar-initial">{initial}</span>
-              </button>
+        {/* Auth — skeleton during restore, then snaps to correct state */}
+        {isLoading ? (
+          <span className="hdr-auth-skeleton" aria-hidden="true" />
+        ) : isAuthenticated && user ? (
+          /* ── Logged-in state ── */
+          <div className="hdr-user" ref={menuRef}>
+            <button
+              className="hdr-avatar"
+              onClick={() => setMenuOpen((o) => !o)}
+              aria-label="Account menu"
+              aria-expanded={menuOpen}
+              aria-haspopup="true"
+            >
+              <span className="hdr-avatar-initial">{initial}</span>
+            </button>
 
-              {menuOpen && (
-                <div className="hdr-menu" role="menu">
-                  <div className="hdr-menu-info">
-                    <span className="hdr-menu-name">{user.username}</span>
-                    <span className="hdr-menu-email">{user.email}</span>
-                  </div>
-                  <hr className="hdr-menu-sep" />
-                  <a className="hdr-menu-item" href="/account" role="menuitem" onClick={() => setMenuOpen(false)}>
-                    Account
-                  </a>
-                  <a className="hdr-menu-item" href="/pantry" role="menuitem" onClick={() => setMenuOpen(false)}>
-                    My Pantry
-                  </a>
-                  <a className="hdr-menu-item" href="/saved" role="menuitem" onClick={() => setMenuOpen(false)}>
-                    Saved Recipes
-                  </a>
-                  <hr className="hdr-menu-sep" />
-                  <button className="hdr-menu-item hdr-menu-signout" role="menuitem" onClick={handleLogout}>
-                    Sign out
-                  </button>
+            {menuOpen && (
+              <div className="hdr-menu" role="menu">
+                <div className="hdr-menu-info">
+                  <span className="hdr-menu-name">{user.username}</span>
+                  <span className="hdr-menu-email">{user.email}</span>
                 </div>
-              )}
-            </div>
-          ) : (
-            /* ── Logged-out state ── */
-            <>
-              <a
-                href="/auth/sign-in"
-                className="hdr-signin"
-              >
-                Sign in
-              </a>
-              <a className="btn" href="/auth/sign-up">
-                {t("go")}
-              </a>
-            </>
-          )
+                <hr className="hdr-menu-sep" />
+                <a className="hdr-menu-item" href="/account" role="menuitem" onClick={() => setMenuOpen(false)}>
+                  Account
+                </a>
+                <a className="hdr-menu-item" href="/pantry" role="menuitem" onClick={() => setMenuOpen(false)}>
+                  My Pantry
+                </a>
+                <a className="hdr-menu-item" href="/saved" role="menuitem" onClick={() => setMenuOpen(false)}>
+                  Saved Recipes
+                </a>
+                <hr className="hdr-menu-sep" />
+                <button className="hdr-menu-item hdr-menu-signout" role="menuitem" onClick={handleLogout}>
+                  Sign out
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* ── Logged-out state ── */
+          <>
+            <a href="/auth/sign-in" className="hdr-signin">
+              Sign in
+            </a>
+            <a className="btn" href="/auth/sign-up">
+              {t("go")}
+            </a>
+          </>
         )}
       </div>
     </header>

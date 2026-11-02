@@ -25,7 +25,7 @@ export default function SignInPage() {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (!isLoading && isAuthenticated) router.replace("/cook");
+    if (!isLoading && isAuthenticated) router.replace("/");
   }, [isLoading, isAuthenticated, router]);
 
   async function handleSubmit(e: FormEvent) {
@@ -40,7 +40,7 @@ export default function SignInPage() {
         { skipAuth: true },
       );
       login(res.user, res.access, res.refresh);
-      router.push("/cook");
+      router.push("/");
     } catch (err) {
       setError(
         err instanceof ApiError
