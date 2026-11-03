@@ -279,7 +279,7 @@ export default function CommunityPage() {
 
                   <div className="cw-form-nav">
                     {step > 1 && (
-                      <button type="button" className="btn btn-out cw-back-btn" onClick={() => setStep((s) => (s - 1) as Step)}>
+                      <button type="button" className="btn out cw-back-btn" onClick={() => setStep((s) => (s - 1) as Step)}>
                         ← Back
                       </button>
                     )}
@@ -304,7 +304,7 @@ export default function CommunityPage() {
                   Our team will review it and add it to the engine if it passes our data standards.
                 </p>
                 <div className="cw-success-actions">
-                  <button className="btn btn-out" type="button" onClick={() => {
+                  <button className="btn out" type="button" onClick={() => {
                     setSubmitted(null); setStep(1); setNameEn(""); setNameSw(""); setDescription(""); setIngredients(""); setSteps(""); setRegionSlug("");
                   }}>
                     Submit another

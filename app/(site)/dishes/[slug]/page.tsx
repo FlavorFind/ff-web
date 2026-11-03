@@ -97,7 +97,7 @@ function CookMode({
             <div className="cm-progress-fill" style={{ width: `${((step + 1) / total) * 100}%` }} />
           </div>
           <span className="cm-count">{step + 1} / {total}</span>
-          <button className="cm-close" onClick={onClose} aria-label="Exit cook mode">✕</button>
+          <button type="button" className="cm-close" onClick={onClose} aria-label="Exit cook mode">✕</button>
         </div>
 
         {/* Step */}
@@ -109,6 +109,7 @@ function CookMode({
         {/* Navigation */}
         <div className="cm-nav">
           <button
+            type="button"
             className={cn("cm-btn", step === 0 && "cm-btn-dim")}
             onClick={() => setStep((s) => Math.max(s - 1, 0))}
             disabled={step === 0}
@@ -118,6 +119,7 @@ function CookMode({
           </button>
           {step < total - 1 ? (
             <button
+              type="button"
               className="cm-btn cm-btn-primary"
               onClick={() => setStep((s) => s + 1)}
               aria-label="Next step"
@@ -125,7 +127,7 @@ function CookMode({
               Next →
             </button>
           ) : (
-            <button className="cm-btn cm-btn-done" onClick={onClose}>
+            <button type="button" className="cm-btn cm-btn-done" onClick={onClose}>
               Done ✓
             </button>
           )}
@@ -297,6 +299,7 @@ export default function DishPage() {
             <div className="dd-actions">
               {dish.steps.length > 0 && (
                 <button
+                  type="button"
                   className="btn dd-cook-btn"
                   onClick={() => setCookMode(true)}
                 >
@@ -304,6 +307,7 @@ export default function DishPage() {
                 </button>
               )}
               <button
+                  type="button"
                   className={cn("btn btn-out dd-save-btn", savedId && "dd-save-btn-saved")}
                   onClick={handleSave}
                   disabled={saving}
@@ -401,6 +405,7 @@ export default function DishPage() {
                     How to cook
                     {dish.steps.length > 0 && (
                       <button
+                        type="button"
                         className="dd-cookmode-inline"
                         onClick={() => setCookMode(true)}
                       >

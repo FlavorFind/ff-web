@@ -10,10 +10,16 @@ export function SiteHeader() {
   const { lang, setLang, t } = useLang();
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
+
+  // User avatar dropdown
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
+  // Mobile hamburger nav
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const mobileRef = useRef<HTMLDivElement>(null);
+
+  // Close user dropdown on outside click
   useEffect(() => {
     function handle(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -24,97 +30,175 @@ export function SiteHeader() {
     return () => document.removeEventListener("mousedown", handle);
   }, []);
 
+  // Close mobile nav on outside click or Escape
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (mobileRef.current && !mobileRef.current.contains(e.target as Node)) {
+        setMobileOpen(false);
+      }
+    }
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setMobileOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, []);
+
+  // Lock body scroll when mobile nav is open
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
+
   async function handleLogout() {
     setMenuOpen(false);
+    setMobileOpen(false);
     await logout();
     router.push("/");
     router.refresh();
+  }
+
+  function closeMobile() {
+    setMobileOpen(false);
   }
 
   // User initial for avatar
   const initial = user?.username?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "?";
 
   return (
-    <header className="top">
-      <div className="wrap">
-        {/* Logo */}
-        <a className="brand" href="/" aria-label="Flavor Find home">
-          <svg aria-hidden="true" width="34" height="34">
-            <use href="#logo" />
-          </svg>
-          Flavor Find
-        </a>
+    <>
+      <header className="top">
+        <div className="wrap">
+          {/* Logo */}
+          <a className="brand" href="/" aria-label="Flavor Find home">
+            <svg aria-hidden="true" width="34" height="34">
+              <use href="#logo" />
+            </svg>
+            Flavor Find
+          </a>
 
-        {/* Nav */}
-        <nav aria-label="Main">
-          <a href="/cook">{t("n1")}</a>
-          <a href="/regions">{t("n2")}</a>
-          <a href="/plus">{t("n3")}</a>
+          {/* Desktop nav */}
+          <nav aria-label="Main" className="top-nav-desktop">
+            <a href="/cook">{t("n1")}</a>
+            <a href="/regions">{t("n2")}</a>
+            <a href="/plus">{t("n3")}</a>
+          </nav>
+
+          {/* EN/SW toggle */}
+          <div className="lang" role="group" aria-label="Language">
+            {(["en", "sw"] as const).map((l) => (
+              <button key={l} type="button" aria-pressed={lang === l} onClick={() => setLang(l)}>
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
+
+          {/* Theme */}
+          <ThemeToggle />
+
+          {/* Auth — skeleton during restore */}
+          {isLoading ? (
+            <span className="hdr-auth-skeleton" aria-hidden="true" />
+          ) : isAuthenticated && user ? (
+            /* ── Logged-in state ── */
+            <div className="hdr-user" ref={menuRef}>
+              <button
+                className="hdr-avatar"
+                onClick={() => setMenuOpen((o) => !o)}
+                aria-label="Account menu"
+                aria-expanded={menuOpen}
+                aria-haspopup="true"
+              >
+                <span className="hdr-avatar-initial">{initial}</span>
+              </button>
+
+              {menuOpen && (
+                <div className="hdr-menu" role="menu">
+                  <div className="hdr-menu-info">
+                    <span className="hdr-menu-name">{user.username}</span>
+                    <span className="hdr-menu-email">{user.email}</span>
+                  </div>
+                  <hr className="hdr-menu-sep" />
+                  <a className="hdr-menu-item" href="/account" role="menuitem" onClick={() => setMenuOpen(false)}>
+                    Account
+                  </a>
+                  <a className="hdr-menu-item" href="/pantry" role="menuitem" onClick={() => setMenuOpen(false)}>
+                    My Pantry
+                  </a>
+                  <a className="hdr-menu-item" href="/saved" role="menuitem" onClick={() => setMenuOpen(false)}>
+                    Saved Recipes
+                  </a>
+                  <hr className="hdr-menu-sep" />
+                  <button className="hdr-menu-item hdr-menu-signout" role="menuitem" onClick={handleLogout}>
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* ── Logged-out state ── */
+            <>
+              <a href="/auth/sign-in" className="hdr-signin">
+                Sign in
+              </a>
+              <a className="btn hdr-cta" href="/auth/sign-up">
+                {t("go")}
+              </a>
+            </>
+          )}
+
+          {/* Hamburger — mobile only */}
+          <button
+            type="button"
+            className="hdr-burger"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-nav"
+            onClick={() => setMobileOpen((o) => !o)}
+          >
+            <span className={`hdr-burger-icon ${mobileOpen ? "hdr-burger-open" : ""}`} aria-hidden="true">
+              <span /><span /><span />
+            </span>
+          </button>
+        </div>
+      </header>
+
+      {/* ── Mobile nav overlay ── */}
+      {mobileOpen && (
+        <div className="mob-nav-backdrop" onClick={closeMobile} aria-hidden="true" />
+      )}
+      <div
+        id="mobile-nav"
+        className={`mob-nav ${mobileOpen ? "mob-nav-open" : ""}`}
+        ref={mobileRef}
+        aria-hidden={!mobileOpen}
+      >
+        <nav aria-label="Mobile navigation">
+          <a className="mob-nav-link" href="/cook" onClick={closeMobile}>{t("n1")}</a>
+          <a className="mob-nav-link" href="/regions" onClick={closeMobile}>{t("n2")}</a>
+          <a className="mob-nav-link" href="/plus" onClick={closeMobile}>{t("n3")}</a>
         </nav>
 
-        {/* EN/SW toggle */}
-        <div className="lang" role="group" aria-label="Language">
-          {(["en", "sw"] as const).map((l) => (
-            <button key={l} type="button" aria-pressed={lang === l} onClick={() => setLang(l)}>
-              {l.toUpperCase()}
-            </button>
-          ))}
-        </div>
+        <hr className="mob-nav-sep" />
 
-        {/* Theme */}
-        <ThemeToggle />
-
-        {/* Auth — skeleton during restore, then snaps to correct state */}
-        {isLoading ? (
-          <span className="hdr-auth-skeleton" aria-hidden="true" />
-        ) : isAuthenticated && user ? (
-          /* ── Logged-in state ── */
-          <div className="hdr-user" ref={menuRef}>
-            <button
-              className="hdr-avatar"
-              onClick={() => setMenuOpen((o) => !o)}
-              aria-label="Account menu"
-              aria-expanded={menuOpen}
-              aria-haspopup="true"
-            >
-              <span className="hdr-avatar-initial">{initial}</span>
-            </button>
-
-            {menuOpen && (
-              <div className="hdr-menu" role="menu">
-                <div className="hdr-menu-info">
-                  <span className="hdr-menu-name">{user.username}</span>
-                  <span className="hdr-menu-email">{user.email}</span>
-                </div>
-                <hr className="hdr-menu-sep" />
-                <a className="hdr-menu-item" href="/account" role="menuitem" onClick={() => setMenuOpen(false)}>
-                  Account
-                </a>
-                <a className="hdr-menu-item" href="/pantry" role="menuitem" onClick={() => setMenuOpen(false)}>
-                  My Pantry
-                </a>
-                <a className="hdr-menu-item" href="/saved" role="menuitem" onClick={() => setMenuOpen(false)}>
-                  Saved Recipes
-                </a>
-                <hr className="hdr-menu-sep" />
-                <button className="hdr-menu-item hdr-menu-signout" role="menuitem" onClick={handleLogout}>
-                  Sign out
-                </button>
-              </div>
-            )}
-          </div>
+        {isAuthenticated && user ? (
+          <nav aria-label="Account">
+            <a className="mob-nav-link" href="/pantry" onClick={closeMobile}>My Pantry</a>
+            <a className="mob-nav-link" href="/saved" onClick={closeMobile}>Saved Recipes</a>
+            <a className="mob-nav-link" href="/account" onClick={closeMobile}>Account</a>
+            <button type="button" className="mob-nav-signout" onClick={handleLogout}>Sign out</button>
+          </nav>
         ) : (
-          /* ── Logged-out state ── */
-          <>
-            <a href="/auth/sign-in" className="hdr-signin">
-              Sign in
-            </a>
-            <a className="btn" href="/auth/sign-up">
-              {t("go")}
-            </a>
-          </>
+          <div className="mob-nav-auth">
+            <a className="btn" href="/auth/sign-up" onClick={closeMobile}>{t("go")}</a>
+            <a className="mob-nav-signin" href="/auth/sign-in" onClick={closeMobile}>Sign in</a>
+          </div>
         )}
       </div>
-    </header>
+    </>
   );
 }

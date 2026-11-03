@@ -166,7 +166,7 @@ function EmptyState({ mode, onSwitch }: { mode: "strict" | "explore"; onSwitch: 
       {mode === "strict" ? (
         <>
           <p>No dishes use exactly these ingredients. Try switching to Explore to see dishes that are 1–2 ingredients away.</p>
-          <button className="btn" onClick={onSwitch}>Switch to Explore</button>
+          <button type="button" className="btn" onClick={onSwitch}>Switch to Explore</button>
         </>
       ) : (
         <p>No dishes found even in explore mode. Try removing an ingredient or checking the spelling.</p>

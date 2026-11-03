@@ -13,13 +13,48 @@ import {
   getProfile, updateProfile,
   getDiet, updateDiet,
   getDevices, getSubscription,
-  deleteAccount,
+  deleteAccount, exportData,
   type UserProfile, type DietSettings, type Device, type Subscription,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 
 type Tab = "profile" | "diet" | "subscription" | "devices" | "privacy";
+
+function ExportButton() {
+  const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
+  async function handleExport() {
+    setState("loading");
+    try {
+      const data = await exportData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `flavorfind-export-${new Date().toISOString().split("T")[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setState("done");
+      setTimeout(() => setState("idle"), 3000);
+    } catch {
+      setState("error");
+      setTimeout(() => setState("idle"), 3000);
+    }
+  }
+  return (
+    <button
+      type="button"
+      className="btn out ac-export-btn"
+      onClick={handleExport}
+      disabled={state === "loading"}
+    >
+      {state === "loading" ? "Preparing export…"
+       : state === "done"    ? "✓ Downloaded"
+       : state === "error"   ? "Export failed — try again"
+       : "Download my data"}
+    </button>
+  );
+}
 
 const DIET_TAGS = [
   { slug: "vegetarian",  label: "Vegetarian" },
@@ -362,9 +397,7 @@ export default function AccountPage() {
             <div className="ac-privacy-section">
               <h3 className="ac-privacy-title">Export your data</h3>
               <p className="ac-privacy-sub">Download everything Flavor Find holds about you — pantry, saved recipes, cook history, profile.</p>
-              <a href="/api/export" className="btn btn-out" download>
-                Request data export
-              </a>
+              <ExportButton />
             </div>
 
             <div className="ac-privacy-section">
