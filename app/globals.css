@@ -164,6 +164,10 @@ body{transition:background-color .4s cubic-bezier(.4,0,.2,1),color .4s cubic-bez
     .hdr-cta{display:none}
     .hdr-signin-desktop{display:none}  /* text "Sign in" hidden — icon takes over */
   }
+  /* Hide theme toggle on small phones */
+  @media (max-width:430px){
+    .theme-btn{display:none}
+  }
   @media (min-width:1025px){
     .hdr-signin-icon{display:none}     /* icon hidden on desktop — text takes over */
   }
