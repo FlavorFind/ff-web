@@ -398,10 +398,10 @@ body{transition:background-color .4s cubic-bezier(.4,0,.2,1),color .4s cubic-bez
   /* ── Search bar — full width on phone ── */
   .bar{
     margin-top:1.4rem;
-    display:flex;gap:.4rem;
+    display:flex;gap:.3rem;
     background:#F7F2E7;
-    border-radius:16px;  /* pill on tablet+, slightly rounded on phone */
-    padding:.4rem;
+    border-radius:14px;
+    padding:.3rem;
     width:100%;
     max-width:100%;
     box-shadow:0 8px 32px -8px #000c;
@@ -409,16 +409,17 @@ body{transition:background-color .4s cubic-bezier(.4,0,.2,1),color .4s cubic-bez
   }
   .bar input{
     flex:1;min-width:0;border:0;background:none;
-    font:500 1rem var(--font-inter),sans-serif;
-    padding:0 .75rem;color:#1C2B26;
+    font:500 .92rem var(--font-inter),sans-serif;
+    padding:0 .65rem;color:#1C2B26;
   }
-  .bar input::placeholder{color:#7a8a82;font-size:.95rem}
+  .bar input::placeholder{color:#7a8a82;font-size:.88rem}
   .bar input:focus{outline:none}
   .bar:focus-within{outline:3px solid var(--gold);outline-offset:3px}
-  .bar .btn{padding:.75rem 1.1rem;font-size:.92rem;white-space:nowrap;flex-shrink:0}
+  .bar .btn{padding:.55rem .95rem;font-size:.85rem;white-space:nowrap;flex-shrink:0}
   @media (min-width:390px){
-    .bar{border-radius:99px;margin-top:1.8rem}
-    .bar .btn{padding:.85rem 1.3rem}
+    .bar{border-radius:99px;margin-top:1.8rem;padding:.4rem;gap:.4rem}
+    .bar input{font-size:1rem;padding:0 .75rem}
+    .bar .btn{padding:.7rem 1.1rem;font-size:.9rem}
   }
   @media (min-width:768px){
     .bar{margin-top:2.4rem;max-width:680px}
