@@ -175,7 +175,7 @@ body{transition:background-color .4s cubic-bezier(.4,0,.2,1),color .4s cubic-bez
     .hdr-signin-icon{display:none}
   }
 
-  /* Sign-in icon button */
+  /* Sign-in icon button (legacy, kept for logged-in skeleton) */
   .hdr-signin-icon{
     display:grid;place-items:center;
     width:36px;height:36px;border-radius:50%;
@@ -185,6 +185,37 @@ body{transition:background-color .4s cubic-bezier(.4,0,.2,1),color .4s cubic-bez
     flex-shrink:0;
   }
   .hdr-signin-icon:hover{color:#F7F2E7;background:rgba(247,242,231,.1)}
+
+  /* ── Mobile icon strip (Cook + Plus + Sign-in) ── */
+  .hdr-icon-strip{
+    display:none; /* hidden on desktop */
+    align-items:center;
+    gap:2px;
+  }
+  .hdr-icon-btn{
+    display:grid;place-items:center;
+    width:38px;height:38px;border-radius:50%;
+    color:rgba(247,242,231,.75);
+    text-decoration:none;
+    transition:color .2s,background .2s;
+    flex-shrink:0;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .hdr-icon-btn svg{width:22px;height:22px}
+  .hdr-icon-btn:hover,.hdr-icon-btn:active{
+    color:#F7F2E7;
+    background:rgba(247,242,231,.1);
+  }
+  /* Plus icon gets a gold tint to stand out */
+  .hdr-icon-plus{color:var(--gold)}
+  .hdr-icon-plus:hover{color:var(--gold);background:rgba(209,174,95,.15)}
+
+  @media (max-width:1024px){
+    .hdr-icon-strip{display:flex}
+  }
+  @media (min-width:1025px){
+    .hdr-icon-strip{display:none!important}
+  }
 
   /* ── Header auth / user menu ── */
   .hdr-signin{text-decoration:none;opacity:.75;font-size:.92rem;padding:.4rem .8rem}

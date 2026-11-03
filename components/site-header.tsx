@@ -143,19 +143,38 @@ export function SiteHeader() {
           ) : (
             /* ── Logged-out state ──
                Desktop: text "Sign in" + "Get started" button
-               Mobile:  icon-only sign-in button (person icon)
+               Mobile:  three icons — Cook, Plus, Sign-in
             ── */
             <>
-              {/* Desktop sign-in text — hidden on mobile */}
+              {/* Mobile icon strip — hidden on desktop */}
+              <div className="hdr-icon-strip">
+                {/* Cook / Search */}
+                <a href="/cook" className="hdr-icon-btn" aria-label="Search dishes">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8"/>
+                    <path d="M17.5 17.5L21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </a>
+                {/* Plus / Upgrade */}
+                <a href="/plus" className="hdr-icon-btn hdr-icon-plus" aria-label="Upgrade to Plus">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 3l2.5 6.5H21l-5.5 4 2 6.5L12 16l-5.5 4 2-6.5L3 9.5h6.5L12 3z"
+                      stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"
+                      fill="currentColor" fillOpacity="0.15"/>
+                  </svg>
+                </a>
+                {/* Sign in */}
+                <a href="/auth/sign-in" className="hdr-icon-btn" aria-label="Sign in">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8"/>
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                  </svg>
+                </a>
+              </div>
+
+              {/* Desktop text links — hidden on mobile */}
               <a href="/auth/sign-in" className="hdr-signin hdr-signin-desktop">
                 Sign in
-              </a>
-              {/* Mobile sign-in icon — hidden on desktop */}
-              <a href="/auth/sign-in" className="hdr-signin-icon" aria-label="Sign in">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="22" height="22">
-                  <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8"/>
-                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                </svg>
               </a>
               <a className="btn hdr-cta" href="/auth/sign-up">
                 {t("go")}
