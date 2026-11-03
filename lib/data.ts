@@ -20,7 +20,7 @@ export type Lang = "en" | "sw";
 export const TX = {
   en: {
     // Nav
-    n1: "Cook", n2: "Counties", n3: "Plus", go: "Get started",
+    n1: "Cook", n2: "Counties", n3: "Plus", n0: "Home", go: "Get started",
     // Hero
     h1: "What's in your kitchen tonight?",
     sub: "Tell us what you have. We'll show you what Kenya cooks with it.",
@@ -55,7 +55,7 @@ export const TX = {
     legal: "Find the flavor. Fill the table. Nutrition and cost figures are estimates. Always confirm allergens with the cook or the label.",
   },
   sw: {
-    n1: "Pika", n2: "Kaunti", n3: "Plus", go: "Anza",
+    n1: "Pika", n2: "Kaunti", n3: "Plus", n0: "Nyumbani", go: "Anza",
     h1: "Una nini jikoni usiku huu?",
     sub: "Tuambie ulicho nacho. Tutakuonyesha Kenya inapika nini nacho.",
     ph: "Jaribu: nyanya, vitunguu, sukuma wiki…",

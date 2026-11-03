@@ -83,6 +83,7 @@ export function SiteHeader() {
 
           {/* Desktop nav */}
           <nav aria-label="Main" className="top-nav-desktop">
+            {isAuthenticated && <a href="/">{t("n0")}</a>}
             <a href="/cook">{t("n1")}</a>
             <a href="/regions">{t("n2")}</a>
             <a href="/plus">{t("n3")}</a>
@@ -178,6 +179,7 @@ export function SiteHeader() {
         aria-hidden={!mobileOpen}
       >
         <nav aria-label="Mobile navigation">
+          {isAuthenticated && <a className="mob-nav-link" href="/" onClick={closeMobile}>{t("n0")}</a>}
           <a className="mob-nav-link" href="/cook" onClick={closeMobile}>{t("n1")}</a>
           <a className="mob-nav-link" href="/regions" onClick={closeMobile}>{t("n2")}</a>
           <a className="mob-nav-link" href="/plus" onClick={closeMobile}>{t("n3")}</a>
