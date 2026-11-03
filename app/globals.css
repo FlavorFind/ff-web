@@ -162,7 +162,22 @@ body{transition:background-color .4s cubic-bezier(.4,0,.2,1),color .4s cubic-bez
     .lang{display:none}
     .top-nav-desktop{display:none}
     .hdr-cta{display:none}
+    .hdr-signin-desktop{display:none}  /* text "Sign in" hidden — icon takes over */
   }
+  @media (min-width:1025px){
+    .hdr-signin-icon{display:none}     /* icon hidden on desktop — text takes over */
+  }
+
+  /* Sign-in icon button */
+  .hdr-signin-icon{
+    display:grid;place-items:center;
+    width:36px;height:36px;border-radius:50%;
+    color:rgba(247,242,231,.8);
+    text-decoration:none;
+    transition:color .2s,background .2s;
+    flex-shrink:0;
+  }
+  .hdr-signin-icon:hover{color:#F7F2E7;background:rgba(247,242,231,.1)}
 
   /* ── Header auth / user menu ── */
   .hdr-signin{text-decoration:none;opacity:.75;font-size:.92rem;padding:.4rem .8rem}

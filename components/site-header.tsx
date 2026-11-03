@@ -141,10 +141,21 @@ export function SiteHeader() {
               )}
             </div>
           ) : (
-            /* ── Logged-out state ── */
+            /* ── Logged-out state ──
+               Desktop: text "Sign in" + "Get started" button
+               Mobile:  icon-only sign-in button (person icon)
+            ── */
             <>
-              <a href="/auth/sign-in" className="hdr-signin">
+              {/* Desktop sign-in text — hidden on mobile */}
+              <a href="/auth/sign-in" className="hdr-signin hdr-signin-desktop">
                 Sign in
+              </a>
+              {/* Mobile sign-in icon — hidden on desktop */}
+              <a href="/auth/sign-in" className="hdr-signin-icon" aria-label="Sign in">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" width="22" height="22">
+                  <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8"/>
+                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
               </a>
               <a className="btn hdr-cta" href="/auth/sign-up">
                 {t("go")}
