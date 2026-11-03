@@ -308,10 +308,10 @@ export function Hero() {
           ))}
         </div>
 
-        {/* ── Quick add ── */}
+        {/* ── Quick add — max 4 on all screens ── */}
         <div className="sugg">
           <span>{t("try")}</span>
-          {QUICK_ADD.map((item) => {
+          {QUICK_ADD.slice(0, 4).map((item) => {
             const label = lang === "sw" ? item.sw : item.en;
             return (
               <button key={item.en} type="button" onClick={() => addTokens([item.en])}>

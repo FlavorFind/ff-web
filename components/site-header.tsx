@@ -73,12 +73,12 @@ export function SiteHeader() {
     <>
       <header className="top">
         <div className="wrap">
-          {/* Logo */}
+          {/* Logo — text hidden on mobile/tablet */}
           <a className="brand" href="/" aria-label="Flavor Find home">
             <svg aria-hidden="true" width="34" height="34">
               <use href="#logo" />
             </svg>
-            Flavor Find
+            <span className="brand-text">Flavor Find</span>
           </a>
 
           {/* Desktop nav */}

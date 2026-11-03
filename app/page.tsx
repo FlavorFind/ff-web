@@ -1,6 +1,7 @@
 "use client";
 
 import { BackToTop } from "@/components/back-to-top";
+import { BottomTabs } from "@/components/bottom-tabs";
 import { Counties } from "@/components/counties";
 import { Cta } from "@/components/cta";
 import { Hero } from "@/components/hero";
@@ -21,9 +22,8 @@ export default function Page() {
   return (
     <>
       <SiteHeader />
-      <main id="top">
+      <main id="top" className="main-content">
         {isLoading ? (
-          /* Tiny spacer while session restores — prevents layout jump */
           <div style={{ minHeight: "100svh" }} aria-hidden="true" />
         ) : isAuthenticated ? (
           <HomeAuth />
@@ -43,6 +43,7 @@ export default function Page() {
       </main>
       <SiteFooter />
       <BackToTop />
+      <BottomTabs />
     </>
   );
 }
